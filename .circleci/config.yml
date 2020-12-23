@@ -353,6 +353,7 @@ jobs:
       <<: *default-build-environment
     steps:
       - prepare-for-build
+      - save-cargo-cache
       - run:
           name: Build/prepare unit tests
           command: |
@@ -396,7 +397,6 @@ jobs:
           root: test-bins
           paths:
             - .
-      - save-cargo-cache
       - save-sccache-cache
       - post-build
 
@@ -469,6 +469,9 @@ jobs:
       <<: *default-build-environment
     steps:
       - prepare-for-build
+      - when:
+          condition: { equal: [ << pipeline.git.branch >>, master ] }
+          steps: [ save-cargo-cache ]
       - run:
           name: Cargo check (SW/IAS dev)
           command: cargo check --frozen --target "$HOST_TARGET_TRIPLE"
@@ -488,7 +491,7 @@ jobs:
       - check-dirty-git
       - when:
           condition: { equal: [ << pipeline.git.branch >>, master ] }
-          steps: [ save-cargo-cache, save-sccache-cache ]
+          steps: [ save-sccache-cache ]
       - post-build
 
   # Build using macOS
@@ -505,6 +508,9 @@ jobs:
       CONSENSUS_ENCLAVE_CSS: /Users/distiller/project/sgx/css/src/valid.css
     steps:
       - prepare-for-build: { os: macos }
+      - when:
+          condition: { equal: [ << pipeline.git.branch >>, master ] }
+          steps: [ save-cargo-cache ]
       - run:
           name: Cargo check
           command: |
@@ -530,7 +536,7 @@ jobs:
       - check-dirty-git
       - when:
           condition: { equal: [ << pipeline.git.branch >>, master ] }
-          steps: [ save-cargo-cache, save-sccache-cache ]
+          steps: [ save-sccache-cache ]
       - post-build
       - when:
           condition: { equal: [ << pipeline.git.branch >>, master ] }
